@@ -6,8 +6,9 @@ on:
       input_version:
         type: choice
         description: >-
-          Version increment. Choose "none" to continue an in-progress
-          pre-release (e.g. rc.0 -> rc.1) without bumping the base version.
+          Base version bump. Use "none" to publish the current version exactly
+          as-is. Choose patch, minor, or major to increase the version before
+          release.
         required: true
         default: patch
         options:
@@ -18,9 +19,8 @@ on:
       prerelease_id:
         type: choice
         description: >-
-          Pre-release identifier. Choose "none" for a stable release, or an
-          identifier (e.g. rc) to publish a pre-release under the matching
-          npm dist-tag and mark the GitHub release as a pre-release.
+          Pre-release tag. Use "none" for a stable release. Choose alpha, beta,
+          or rc to publish a pre-release and tag it on npm/GitHub.
         required: true
         default: none
         options:
@@ -132,6 +132,10 @@ jobs:
 
           if [ "$PRERELEASE_ID" != "none" ]; then
             args+=("--preRelease=$PRERELEASE_ID")
+          fi
+
+          if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
+            args+=("--no-increment")
           fi
 
           if [ "${#args[@]}" -eq 0 ]; then
