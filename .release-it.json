@@ -1,0 +1,80 @@
+{
+  "$schema": "https://unpkg.com/release-it@21/schema/release-it.json",
+  "hooks": {
+    "after:bump": ["rimraf --glob \"*.tgz\"", "npm pack"]
+  },
+  "git": {
+    "commitMessage": "chore(release): ${version}",
+    "tagName": "v${version}",
+    "commitArgs": ["-S"],
+    "tagArgs": ["-s"]
+  },
+  "npm": {
+    "publish": true,
+    "skipChecks": true,
+    "stage": true
+  },
+  "github": {
+    "release": true,
+    "assets": ["*.tgz"],
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "type": "feat",
+            "section": "🎉 Features"
+          },
+          {
+            "type": "fix",
+            "section": "🐛 Bug Fixes"
+          },
+          {
+            "type": "perf",
+            "section": "⚡️ Performance Improvements"
+          },
+          {
+            "type": "revert",
+            "section": "⏪️ Reverts"
+          },
+          {
+            "type": "docs",
+            "section": "📝 Documentation"
+          },
+          {
+            "type": "style",
+            "hidden": true
+          },
+          {
+            "type": "refactor",
+            "hidden": true
+          },
+          {
+            "type": "test",
+            "hidden": true
+          },
+          {
+            "type": "build",
+            "hidden": true
+          },
+          {
+            "type": "ci",
+            "hidden": true
+          },
+          {
+            "type": "sec",
+            "section": "🛡️ Security Fix"
+          },
+          {
+            "type": "chore",
+            "hidden": true
+          }
+        ]
+      },
+      "infile": "CHANGELOG.md"
+    }
+  }
+}

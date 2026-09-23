@@ -1,0 +1,77 @@
+name: Run Android Tests
+description: Set up Node, Java, Android SDK and KVM, then run Android plugin tests on a Gradle-managed ATD emulator.
+
+inputs:
+  api-level:
+    description: Android API level for the Gradle-managed test device.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Free up disk space
+      shell: bash
+      run: |
+        set -euo pipefail
+        # GitHub-hosted runners can be left with only a few GB free on their root.
+        # Remove preinstalled toolchains that this job does not use.
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost "${AGENT_TOOLSDIRECTORY:-}"
+        sudo docker image prune --all --force || true
+        df -h /
+
+    - name: Set up Node.js
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Set up Java
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: temurin
+        java-version: 21
+        cache: gradle
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+
+    - name: Enable KVM
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Cache Gradle-managed test device
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.android/avd
+        key: gmd-atd-${{ runner.os }}-api${{ inputs.api-level }}-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+
+    - name: Make Gradle wrapper executable
+      shell: bash
+      run: |
+        set -euo pipefail
+        chmod +x android/gradlew
+
+    - name: Run Android tests
+      shell: bash
+      run: |
+        set -euo pipefail
+        node scripts/run-android-tests.mjs "${{ inputs.api-level }}"
+
+    - name: Upload test reports
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: android-test-reports-api${{ inputs.api-level }}
+        path: |
+          android/build/reports/
+          android/build/outputs/androidTest-results/
+        retention-days: 7

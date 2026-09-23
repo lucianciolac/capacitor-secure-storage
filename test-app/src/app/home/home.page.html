@@ -1,0 +1,39 @@
+<ion-header [translucent]="true">
+  <ion-toolbar> <ion-title>Secure Storage</ion-title> </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list>
+    <!-- Get -->
+    <ion-item>
+      <ion-input [(ngModel)]="getKey" label="Key" labelPlacement="stacked" type="text"> </ion-input>
+      <ion-button slot="end" (click)="get(getKey)"> Get </ion-button>
+    </ion-item>
+
+    <!-- Set -->
+    <ion-item>
+      <ion-input [(ngModel)]="setKey" label="Key" labelPlacement="stacked" type="text"> </ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-input [(ngModel)]="setValue" label="Value" labelPlacement="stacked" type="text"> </ion-input>
+      <ion-button slot="end" (click)="set(setKey, setValue)"> Set </ion-button>
+    </ion-item>
+
+    <!-- Remove -->
+    <ion-item>
+      <ion-input [(ngModel)]="removeKey" label="Key" labelPlacement="stacked" type="text"> </ion-input>
+      <ion-button slot="end" (click)="remove(removeKey)"> Remove </ion-button>
+    </ion-item>
+
+    <!-- All Keys -->
+    <ion-item>
+      <ion-button expand="block" (click)="keys()"> All keys </ion-button>
+    </ion-item>
+
+    <!-- Clear -->
+    <ion-item>
+      <ion-button expand="block" color="danger" (click)="clear()"> Clear </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>

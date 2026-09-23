@@ -1,0 +1,55 @@
+# Development dependencies and generated package output
+node_modules/
+dist/
+coverage/
+
+# Native build output
+build/
+.build/
+Pods/
+DerivedData/
+xcuserdata/
+.gradle/
+android/build/
+ios/Build/
+test-app/android/.gradle/
+test-app/android/build/
+test-app/ios/App/build/
+
+# Test application and local tooling
+test-app/
+tests/
+scripts/
+.github/
+.vscode/
+.editorconfig
+.gitignore
+.prettierignore
+.prettierrc.yaml
+.swiftlint.yml
+rollup.config.mjs
+tsconfig.json
+
+# Local files and operating-system metadata
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Android artifacts and local configuration
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+*.iml
+local.properties
+proguard/
+.externalNativeBuild/
+.navigation/
+captures/
+.idea/
+
+# Native signing material
+*.jks
+*.keystore

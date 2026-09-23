@@ -1,0 +1,67 @@
+# Specifies intentionally untracked files to ignore when using Git
+# http://git-scm.com/docs/gitignore
+
+*~
+*.sw[mnpcod]
+*.log
+*.tmp
+*.tmp.*
+log.txt
+*.sublime-project
+*.sublime-workspace
+.vscode/
+npm-debug.log*
+
+.idea/
+.ionic/
+.sourcemaps/
+.sass-cache/
+.tmp/
+.versions/
+coverage/
+www/
+tmp/
+temp/
+platforms/
+plugins/
+plugins/android.json
+plugins/ios.json
+$RECYCLE.BIN/
+
+android/.gradle
+
+.DS_Store
+Thumbs.db
+UserInterfaceState.xcuserstate
+
+# node files
+dist/
+node_modules/
+
+# iOS files
+Pods
+Build
+xcuserdata
+ios/SecureStoragePlugin.xcodeproj/
+
+# Gradle files
+.gradle/
+build/
+
+# Firebase hosting directory
+.firebase/
+
+# Build
+# dist/
+
+*.tgz
+
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+Podfile.lock
+Package.resolved
+/.build
