@@ -1,0 +1,15 @@
+bracketSpacing: true
+endOfLine: lf
+printWidth: 120
+proseWrap: preserve
+semi: true
+singleQuote: false
+tabWidth: 2
+trailingComma: all
+useTabs: false
+plugins:
+  - prettier-plugin-java
+overrides:
+  - files: "test-app/**/*.html"
+    options:
+      parser: angular

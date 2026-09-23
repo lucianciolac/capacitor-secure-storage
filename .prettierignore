@@ -1,0 +1,27 @@
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+.build/
+build/
+
+# Generated test-app files
+test-app/.angular/
+test-app/android/app/src/main/assets/public/
+test-app/android/app/src/main/assets/capacitor.config.json
+test-app/android/app/src/main/assets/capacitor.plugins.json
+test-app/android/capacitor-cordova-android-plugins/
+test-app/ios/App/App/public/
+test-app/ios/App/App/capacitor.config.json
+test-app/ios/App/output/
+test-app/ios/capacitor-cordova-ios-plugins/
+
+# Native tool output
+Pods/
+DerivedData/
+xcuserdata/
+
+# Project metadata files
+package-lock.json
+package.json
+CHANGELOG.md
