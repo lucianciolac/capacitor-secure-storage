@@ -149,7 +149,6 @@ jobs:
         run: npm run release -- ${{ steps.release_args.outputs.args }} --ci
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Attest release archive
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
