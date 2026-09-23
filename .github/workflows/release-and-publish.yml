@@ -1,0 +1,132 @@
+on:
+  workflow_dispatch:
+    inputs:
+      input_version:
+        type: choice
+        description: >-
+          Select “none” to increment only the pre-release number (e.g. rc.0 → rc.1).
+          Choose patch, minor, or major to bump the base version instead.
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - none
+
+      prerelease_id:
+        type: choice
+        description: >-
+          Pre-release tag. Select “none” for a stable release.
+          If the current version is already a pre-release (e.g. 1.0.0-rc.1), “none” graduates it to the matching stable version (1.0.0) without a bump.
+          Choose alpha, beta, or rc to create or increment a pre-release.
+        required: true
+        default: none
+        options:
+          - none
+          - alpha
+          - beta
+          - rc
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  lint:
+    uses: ./.github/workflows/linting.yml
+
+  test-suite:
+    uses: ./.github/workflows/test-suite.yml
+
+  package-integrity:
+    uses: ./.github/workflows/package-integrity-check.yml
+
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: [lint, test-suite, package-integrity]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@lcorg/capacitor-secure-storage
+
+    steps:
+      - name: Create release app token
+        id: release-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          token: ${{ steps.release-app-token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Import GPG signing key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "${{ steps.import-gpg.outputs.name }}"
+          git config user.email "${{ steps.import-gpg.outputs.email }}"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine release-it arguments
+        id: release_args
+        env:
+          INPUT_VERSION: ${{ inputs.input_version }}
+          PRERELEASE_ID: ${{ inputs.prerelease_id }}
+        run: |
+          args=()
+
+          if [ "$INPUT_VERSION" != "none" ]; then
+            args+=("$INPUT_VERSION")
+          fi
+
+          if [ "$PRERELEASE_ID" != "none" ]; then
+            args+=("--preRelease=$PRERELEASE_ID")
+          fi
+
+          if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
+            args+=("--no-increment")
+          fi
+
+          if [ "${#args[@]}" -eq 0 ]; then
+            echo "::error::Select a version increment, a pre-release identifier, or both."
+            exit 1
+          fi
+
+          echo "args=${args[*]}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        run: npm run release -- ${{ steps.release_args.outputs.args }} --ci
+        env:
+          GITHUB_TOKEN: ${{ steps.release-app-token.outputs.token }}
+
+      - name: Attest release archive
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ github.workspace }}/*.tgz

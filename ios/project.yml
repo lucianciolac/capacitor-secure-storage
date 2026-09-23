@@ -1,0 +1,51 @@
+name: SecureStoragePlugin
+
+options:
+  bundleIdPrefix: com.lcorg.securestorage
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+packages:
+  LcorgCapacitorSecureStorage:
+    path: ..
+
+targets:
+  TestHost:
+    type: application
+    platform: iOS
+    sources:
+      - TestHost
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.lcorg.securestorage.TestHost
+
+  SecureStoragePluginHostTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests/SecureStoragePluginTests
+    dependencies:
+      - package: LcorgCapacitorSecureStorage
+        product: LcorgCapacitorSecureStorage
+      - target: TestHost
+        embed: false
+        link: false
+    settings:
+      base:
+        BUNDLE_LOADER: $(TEST_HOST)
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.lcorg.securestorage.TestHostTests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/TestHost.app/TestHost
+
+schemes:
+  SecureStoragePluginHostTests:
+    build:
+      targets:
+        SecureStoragePluginHostTests: [test]
+    test:
+      targets:
+        - SecureStoragePluginHostTests
