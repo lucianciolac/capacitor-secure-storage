@@ -46,23 +46,23 @@
           },
           {
             "type": "style",
-            "hidden": true
+            "effect": "hidden"
           },
           {
             "type": "refactor",
-            "hidden": true
+            "effect": "hidden"
           },
           {
             "type": "test",
-            "hidden": true
+            "effect": "hidden"
           },
           {
             "type": "build",
-            "hidden": true
+            "effect": "hidden"
           },
           {
             "type": "ci",
-            "hidden": true
+            "effect": "hidden"
           },
           {
             "type": "sec",
@@ -70,7 +70,7 @@
           },
           {
             "type": "chore",
-            "hidden": true
+            "effect": "hidden"
           }
         ]
       },
