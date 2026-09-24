@@ -128,6 +128,7 @@ jobs:
       - name: Create or update release pull request
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if gh pr view "$RELEASE_BRANCH" --json url >/dev/null 2>&1; then
             echo "Pull request already open for $RELEASE_BRANCH; branch updated."
@@ -146,5 +147,3 @@ jobs:
           - Create the GitHub release
 
           Review the version bump and \`CHANGELOG.md\` changes before merging."
-      env:
-        GH_TOKEN: ${{ github.token }}
