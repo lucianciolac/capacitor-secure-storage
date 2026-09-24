@@ -118,8 +118,15 @@ jobs:
 
           npm run release -- "${args[@]}" --ci
 
-      - name: Format files
+      - name: Format release changes
         run: npm run format
+
+      - name: Amend release commit with formatting
+        run: |
+          if ! git diff --quiet; then
+            git add -A
+            git commit --amend --no-edit
+          fi
 
       - name: Read new version
         id: version
