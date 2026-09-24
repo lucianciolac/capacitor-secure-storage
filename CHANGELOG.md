@@ -4,4 +4,4 @@
 
 ### Features
 
-* initial release for v1.0.0 ([2509bb7](https://github.com/lucianciolac/capacitor-secure-storage/commit/2509bb7c53d7571ff4679f88f4694a60052ab01e))
+* initial release for v1.0.0 ([206f5db](https://github.com/lucianciolac/capacitor-secure-storage/commit/206f5db17b68073a938fc1c07abd925dab77f4b6))
