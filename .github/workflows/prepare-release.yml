@@ -42,8 +42,10 @@ jobs:
   prepare-release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@lcorg/capacitor-secure-storage
     env:
-      GH_TOKEN: ${{ github.token }}
       RELEASE_BRANCH: release/next
     steps:
       - name: Checkout repository
