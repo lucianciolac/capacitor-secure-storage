@@ -146,3 +146,5 @@ jobs:
           - Create the GitHub release
 
           Review the version bump and \`CHANGELOG.md\` changes before merging."
+      env:
+        GH_TOKEN: ${{ github.token }}
