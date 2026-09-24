@@ -39,38 +39,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ios:
-    runs-on: macos-15
-    timeout-minutes: 15
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+  lint:
+    uses: ./.github/workflows/linting.yml
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+  test-suite:
+    uses: ./.github/workflows/test-suite.yml
 
-      - name: Test Swift package
-        run: npm run test:ios
-
-  android:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        api-level: [30, 36]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Run Android tests
-        uses: ./.github/actions/run-android-tests
-        with:
-          api-level: ${{ matrix.api-level }}
+  package-integrity:
+    uses: ./.github/workflows/package-integrity-check.yml
 
   publish:
     if: github.ref == 'refs/heads/main'
-    needs: [ios, android]
+    needs: [lint, test-suite, package-integrity]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -108,15 +88,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test web
-        run: npm run test:web
-
-      - name: Run package smoke tests
-        run: npm run test:package
 
       - name: Determine release-it arguments
         id: release_args
