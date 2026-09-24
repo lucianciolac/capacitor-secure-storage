@@ -1,8 +1,13 @@
 # Capacitor Secure Storage
 
 [![npm version](https://img.shields.io/npm/v/@lcorg/capacitor-secure-storage)](https://www.npmjs.com/package/@lcorg/capacitor-secure-storage)
-[![npm downloads](https://img.shields.io/npm/dt/@lcorg/capacitor-secure-storage)](https://www.npmjs.com/package/@lcorg/capacitor-secure-storage)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![npm downloads](https://img.shields.io/npm/dw/@lcorg/capacitor-secure-storage)](https://www.npmjs.com/package/@lcorg/capacitor-secure-storage)
+[![Test Suite](https://github.com/lucianciolac/capacitor-secure-storage/actions/workflows/test-suite.yml/badge.svg)](https://github.com/lucianciolac/capacitor-secure-storage/actions/workflows/test-suite.yml)
+[![License](https://img.shields.io/github/license/lucianciolac/capacitor-secure-storage)](https://github.com/lucianciolac/capacitor-secure-storage/blob/main/LICENSE)
+
+[![Capacitor](https://img.shields.io/badge/Capacitor-8-119EFF)](https://capacitorjs.com/)
+[![iOS](https://img.shields.io/badge/iOS-16%2B-000000)](https://developer.apple.com/ios/)
+[![Android](https://img.shields.io/badge/Android-API%2030%2B-3DDC84)](https://developer.android.com/)
 
 Securely store string values in [Capacitor](https://capacitorjs.com/) applications using native iOS and Android storage mechanisms.
 
