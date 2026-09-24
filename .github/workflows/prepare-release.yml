@@ -116,7 +116,7 @@ jobs:
             fi
           fi
 
-          npm run release -- "${args[@]}" --ci.pu
+          npm run release -- "${args[@]}" --ci
 
       - name: Read new version
         id: version
