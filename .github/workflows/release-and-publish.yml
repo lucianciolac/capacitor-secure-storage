@@ -6,8 +6,9 @@ on:
       input_version:
         type: choice
         description: >-
+          Choose patch, minor, or major to bump the base version.
           Select “none” to increment only the pre-release number (e.g. rc.0 → rc.1).
-          Choose patch, minor, or major to bump the base version instead.
+          Select “none” when graduating the current pre-release.
         required: true
         default: patch
         options:
@@ -104,23 +105,28 @@ jobs:
         run: |
           args=()
 
-          if [ "$INPUT_VERSION" != "none" ]; then
-            args+=("$INPUT_VERSION")
-          fi
-
-          if [ "$PRERELEASE_ID" != "none" ]; then
-            args+=("--preRelease=$PRERELEASE_ID")
-          fi
-
           if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
-            args+=("--no-increment")
+            current_version=$(node -p "require('./package.json').version")
+
+            if [[ "$current_version" != *-* ]]; then
+              echo "::error::Cannot graduate '$current_version': it is already a stable release."
+              exit 1
+            fi
+
+            base_version="${current_version%%-*}"
+
+            args+=("$base_version")
+          else
+            if [ "$INPUT_VERSION" != "none" ]; then
+              args+=("$INPUT_VERSION")
+            fi
+
+            if [ "$PRERELEASE_ID" != "none" ]; then
+              args+=("--preRelease=$PRERELEASE_ID")
+            fi
           fi
 
-          if [ "${#args[@]}" -eq 0 ]; then
-            echo "::error::Select a version increment, a pre-release identifier, or both."
-            exit 1
-          fi
-
+          echo "release-it arguments: ${args[*]}"
           echo "args=${args[*]}" >> "$GITHUB_OUTPUT"
 
       - name: Publish release
