@@ -1,3 +1,5 @@
+name: Release and Publish
+
 on:
   workflow_dispatch:
     inputs:
