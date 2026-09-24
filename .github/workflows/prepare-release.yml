@@ -1,0 +1,145 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_version:
+        type: choice
+        description: >-
+          Base version bump.
+          Select “none” to increment only the pre-release number (e.g. rc.0 → rc.1).
+          Choose patch, minor, or major to bump the base version instead.
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+          - none
+      prerelease_id:
+        type: choice
+        description: >-
+          Pre-release tag. Select “none” for a stable release.
+          If the current version is already a pre-release (e.g. 1.0.0-rc.1), “none” graduates it to the matching stable version (1.0.0) without a bump.
+          Choose alpha, beta, or rc to create or increment a pre-release.
+        required: true
+        default: none
+        options:
+          - none
+          - alpha
+          - beta
+          - rc
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: prepare-release
+  cancel-in-progress: false
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_BRANCH: release/next
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Import GPG signing key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "${{ steps.import-gpg.outputs.name }}"
+          git config user.email "${{ steps.import-gpg.outputs.email }}"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create release branch
+        run: git checkout -B "$RELEASE_BRANCH"
+
+      - name: Bump version and update changelog
+        env:
+          INPUT_VERSION: ${{ inputs.input_version }}
+          PRERELEASE_ID: ${{ inputs.prerelease_id }}
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+
+          args=(
+            "--no-git.push"
+            "--no-git.tag"
+            "--no-npm.publish"
+            "--no-github.release"
+          )
+
+          if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
+            if [[ "$CURRENT_VERSION" != *-* ]]; then
+              echo "::error::Current version $CURRENT_VERSION is already stable."
+              echo "::error::Select patch, minor, major, alpha, beta, or rc."
+              exit 1
+            fi
+
+            TARGET_VERSION="${CURRENT_VERSION%%-*}"
+
+            echo "Graduating $CURRENT_VERSION -> $TARGET_VERSION"
+
+            args+=("$TARGET_VERSION")
+          else
+            if [ "$INPUT_VERSION" != "none" ]; then
+              args+=("$INPUT_VERSION")
+            fi
+
+            if [ "$PRERELEASE_ID" != "none" ]; then
+              args+=("--preRelease=$PRERELEASE_ID")
+            fi
+          fi
+
+          npm run release -- "${args[@]}" --ci
+
+      - name: Read new version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Push release branch
+        run: git push --force-with-lease origin "$RELEASE_BRANCH"
+
+      - name: Create or update release pull request
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh pr view "$RELEASE_BRANCH" --json url >/dev/null 2>&1; then
+            echo "Pull request already open for $RELEASE_BRANCH; branch updated."
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head "$RELEASE_BRANCH" \
+            --title "chore(release): v${VERSION}" \
+            --body "Automated release preparation for **v${VERSION}**.
+
+          Merging this pull request bumps the version, then triggers [release-and-publish.yml](../actions/workflows/release-and-publish.yml), which will:
+          - Create and push the signed \`v${VERSION}\` tag
+          - Publish the package to npm
+          - Create the GitHub release
+
+          Review the version bump and \`CHANGELOG.md\` changes before merging."

@@ -1,33 +1,10 @@
 name: Release and Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      input_version:
-        type: choice
-        description: >-
-          Base version bump. Use "none" to publish the current version exactly
-          as-is. Choose patch, minor, or major to increase the version before
-          release.
-        required: true
-        default: patch
-        options:
-          - patch
-          - minor
-          - major
-          - none
-      prerelease_id:
-        type: choice
-        description: >-
-          Pre-release tag. Use "none" for a stable release. Choose alpha, beta,
-          or rc to publish a pre-release and tag it on npm/GitHub.
-        required: true
-        default: none
-        options:
-          - none
-          - alpha
-          - beta
-          - rc
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -39,18 +16,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  lint:
-    uses: ./.github/workflows/linting.yml
-
-  test-suite:
-    uses: ./.github/workflows/test-suite.yml
-
-  package-integrity:
-    uses: ./.github/workflows/package-integrity-check.yml
-
   publish:
-    if: github.ref == 'refs/heads/main'
-    needs: [lint, test-suite, package-integrity]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'release/next')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -60,6 +29,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Set up Node.js
@@ -86,35 +56,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Determine release-it arguments
-        id: release_args
-        env:
-          INPUT_VERSION: ${{ inputs.input_version }}
-          PRERELEASE_ID: ${{ inputs.prerelease_id }}
-        run: |
-          args=()
-
-          if [ "$INPUT_VERSION" != "none" ]; then
-            args+=("$INPUT_VERSION")
-          fi
-
-          if [ "$PRERELEASE_ID" != "none" ]; then
-            args+=("--preRelease=$PRERELEASE_ID")
-          fi
-
-          if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
-            args+=("--no-increment")
-          fi
-
-          if [ "${#args[@]}" -eq 0 ]; then
-            echo "::error::Select a version increment, a pre-release identifier, or both."
-            exit 1
-          fi
-
-          echo "args=${args[*]}" >> "$GITHUB_OUTPUT"
-
       - name: Publish release
-        run: npm run release -- ${{ steps.release_args.outputs.args }} --ci
+        run: npm run release -- --no-increment --ci
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
