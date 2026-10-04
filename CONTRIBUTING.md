@@ -132,6 +132,55 @@ Please keep pull requests **focused on a single change**. Mixing multiple change
 - **Preserve backwards compatibility** - avoid breaking existing functionality when practical
 - **For security changes** - describe security implications and include validation
 
+### Commit messages and release notes
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) with a type that
+describes the consumer impact of the change:
+
+- `feat`: new capabilities or public API additions; recommends a minor release.
+- `fix`: behavior corrections, including security fixes; recommends a patch release.
+- `perf`: performance improvements; recommends a patch release.
+- `revert`: reverted changes; visible in release notes and eligible for a version bump.
+- `docs`: documentation changes; visible in release notes without affecting the recommended version bump.
+- `style`, `refactor`, `test`, `build`, `ci`, and `chore`: internal maintenance; hidden from release notes and excluded from the recommended version bump unless breaking.
+
+Use scopes such as `ios`, `android`, `web`, `api`, `types`, `deps`, or `security`
+to identify the affected surface. Use `fix(security)` rather than a custom `sec`
+type for security fixes, following the private reporting process in [SECURITY.md](SECURITY.md).
+
+```text
+feat(ios): add a keychain accessibility option
+fix(android): handle invalidated keystore keys
+fix(security): prevent sensitive values from appearing in logs
+docs(api): clarify missing-key errors
+```
+
+Declare breaking changes with `!` after the type/scope or a `BREAKING CHANGE:`
+footer. Breaking changes recommend a major release regardless of the commit type.
+Include migration guidance for incompatible API or storage changes, dropped
+Capacitor compatibility, or increased minimum OS versions.
+
+```text
+feat!: require Capacitor 9
+
+BREAKING CHANGE: applications must upgrade to Capacitor 9 before installing this version.
+```
+
+### Releasing
+
+The [Release and Publish workflow](.github/workflows/release-and-publish.yml)
+defaults to `input_version: auto`, which uses the Conventional Commits recommendation.
+
+- `auto`: omit the version override and use the recommended bump.
+- `patch`, `minor`, or `major`: explicitly override the recommendation.
+- `none`: require an existing pre-release. With `prerelease_id: none`, graduate to the matching stable version; with `alpha`, `beta`, or `rc`, increment the pre-release or switch its identifier without changing the base version.
+
+Set `prerelease_id: none` for stable releases, or select `alpha`, `beta`, or `rc`
+for pre-releases. Automatic pre-release versioning follows release-it's recommendation
+and pre-release handling; it is not an unconditional pre-release counter increment.
+For example, `none` with `rc` changes `1.2.0-rc.0` to `1.2.0-rc.1`, while
+`none` with `prerelease_id: none` graduates it to `1.2.0`.
+
 ### Security-sensitive changes
 
 For changes affecting security behavior, please:

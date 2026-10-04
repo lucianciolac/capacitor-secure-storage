@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    exclude-paths:
+      - "test-app/**"
     schedule:
       interval: weekly
     commit-message:

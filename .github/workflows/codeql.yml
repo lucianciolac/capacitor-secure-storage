@@ -50,6 +50,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+          config: |
+            paths-ignore:
+              - 'test-app/**'
 
       - name: Build Swift package for iOS Simulator
         if: matrix.build-mode == 'manual'

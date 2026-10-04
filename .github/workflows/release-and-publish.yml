@@ -6,12 +6,13 @@ on:
       input_version:
         type: choice
         description: >-
-          Choose patch, minor, or major to bump the base version.
-          Select “none” to increment only the pre-release number (e.g. rc.0 → rc.1).
-          Select “none” when graduating the current pre-release.
+          Choose auto to use the Conventional Commits recommendation.
+          Choose patch, minor, or major to override it.
+          Choose none only to increment or graduate an existing pre-release.
         required: true
-        default: patch
+        default: auto
         options:
+          - auto
           - patch
           - minor
           - major
@@ -20,8 +21,8 @@ on:
       prerelease_id:
         type: choice
         description: >-
-          Pre-release tag. Select “none” for a stable release.
-          If the current version is already a pre-release (e.g. 1.0.0-rc.1), “none” graduates it to the matching stable version (1.0.0) without a bump.
+          Select none for a stable release.
+          With input_version none, this graduates the current pre-release without a base-version bump.
           Choose alpha, beta, or rc to create or increment a pre-release.
         required: true
         default: none
@@ -99,35 +100,55 @@ jobs:
 
       - name: Determine release-it arguments
         id: release_args
+        shell: node {0}
         env:
           INPUT_VERSION: ${{ inputs.input_version }}
           PRERELEASE_ID: ${{ inputs.prerelease_id }}
         run: |
-          args=()
+          const { appendFileSync, readFileSync } = require("node:fs");
+          const { createRequire } = require("node:module");
+          const { resolve } = require("node:path");
+          const semver = createRequire(resolve("package.json"))("semver");
+          const { INPUT_VERSION, PRERELEASE_ID, GITHUB_OUTPUT } = process.env;
+          const args = [];
 
-          if [ "$INPUT_VERSION" = "none" ] && [ "$PRERELEASE_ID" = "none" ]; then
-            current_version=$(node -p "require('./package.json').version")
+          if (!["auto", "patch", "minor", "major", "none"].includes(INPUT_VERSION)) {
+            throw new Error(`Unsupported release increment: ${INPUT_VERSION}`);
+          }
+          if (!["none", "alpha", "beta", "rc"].includes(PRERELEASE_ID)) {
+            throw new Error(`Unsupported pre-release identifier: ${PRERELEASE_ID}`);
+          }
 
-            if [[ "$current_version" != *-* ]]; then
-              echo "::error::Cannot graduate '$current_version': it is already a stable release."
-              exit 1
-            fi
+          if (INPUT_VERSION === "none") {
+            const { version } = JSON.parse(readFileSync("package.json", "utf8"));
 
-            base_version="${current_version%%-*}"
+            if (!semver.valid(version)) {
+              throw new Error(`Invalid current package version: ${version}`);
+            }
 
-            args+=("$base_version")
-          else
-            if [ "$INPUT_VERSION" != "none" ]; then
-              args+=("$INPUT_VERSION")
-            fi
+            if (!semver.prerelease(version)) {
+              throw new Error(`Cannot increment or graduate '${version}': it is already a stable release.`);
+            }
 
-            if [ "$PRERELEASE_ID" != "none" ]; then
-              args+=("--preRelease=$PRERELEASE_ID")
-            fi
-          fi
+            const nextVersion = PRERELEASE_ID === "none"
+              ? `${semver.major(version)}.${semver.minor(version)}.${semver.patch(version)}`
+              : semver.inc(version, "prerelease", PRERELEASE_ID);
 
-          echo "release-it arguments: ${args[*]}"
-          echo "args=${args[*]}" >> "$GITHUB_OUTPUT"
+            if (!nextVersion) {
+              throw new Error(`Cannot increment pre-release '${version}'.`);
+            }
+
+            args.push(nextVersion);
+          } else if (INPUT_VERSION !== "auto") {
+            args.push(INPUT_VERSION);
+          }
+
+          if (PRERELEASE_ID !== "none") {
+            args.push(`--preRelease=${PRERELEASE_ID}`);
+          }
+
+          console.log(`release-it arguments: ${args.join(" ")}`);
+          appendFileSync(GITHUB_OUTPUT, `args=${args.join(" ")}\n`);
 
       - name: Publish release
         run: npm run release -- ${{ steps.release_args.outputs.args }} --ci
@@ -135,6 +156,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.release-app-token.outputs.token }}
 
       - name: Attest release archive
+        if: ${{ hashFiles('*.tgz') != '' }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ github.workspace }}/*.tgz

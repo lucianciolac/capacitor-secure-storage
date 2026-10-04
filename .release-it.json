@@ -26,23 +26,28 @@
         "types": [
           {
             "type": "feat",
-            "section": "Features"
+            "section": "Features",
+            "effect": "bump"
           },
           {
             "type": "fix",
-            "section": "Bug Fixes"
+            "section": "Bug Fixes",
+            "effect": "bump"
           },
           {
             "type": "perf",
-            "section": "Performance"
+            "section": "Performance Improvements",
+            "effect": "bump"
           },
           {
             "type": "revert",
-            "section": "Reverts"
+            "section": "Reverts",
+            "effect": "bump"
           },
           {
             "type": "docs",
-            "section": "Documentation"
+            "section": "Documentation",
+            "effect": "changelog"
           },
           {
             "type": "style",
@@ -63,10 +68,6 @@
           {
             "type": "ci",
             "effect": "hidden"
-          },
-          {
-            "type": "sec",
-            "section": "Security"
           },
           {
             "type": "chore",
