@@ -33,8 +33,6 @@ cd capacitor-secure-storage
 npm install
 ```
 
-This repository uses **npm workspaces**. The root install automatically installs the example/test app in the [test-app](/test-app) directory, so do not run a separate install there.
-
 ### Running tests
 
 Use the project scripts defined in [package.json](/package.json).
@@ -111,9 +109,11 @@ brew install swiftlint
 
 For native code changes, validate using the example/test app where possible.
 
-Run test-app tasks from the repository root:
+Run test-app tasks from the repository root. Build the plugin and install the test app first:
 
 ```bash
+npm run build
+npm run test-app:install
 npm run test-app:build:web
 npm run test-app:build:android
 npm run test-app:build:ios
