@@ -38,11 +38,12 @@
     "test:web": "npm run build && node --test tests/web.test.cjs",
     "test:ios": "node scripts/run-ios-tests.mjs",
     "test:android": "node scripts/run-android-tests.mjs",
-    "test-app:setup": "npm run setup --workspace test-app",
-    "test-app:start:web": "npm run start:web --workspace test-app",
-    "test-app:build:web": "npm run build:web --workspace test-app",
-    "test-app:build:android": "npm run build:android --workspace test-app",
-    "test-app:build:ios": "npm run build:ios --workspace test-app",
+    "test-app:install": "npm --prefix test-app install",
+    "test-app:setup": "npm run test-app:install && npm --prefix test-app run setup",
+    "test-app:start:web": "npm --prefix test-app run start:web",
+    "test-app:build:web": "npm --prefix test-app run build:web",
+    "test-app:build:android": "npm --prefix test-app run build:android",
+    "test-app:build:ios": "npm --prefix test-app run build:ios",
     "verify": "npm run lint && npm test && npm run test:package",
     "release": "release-it"
   },
@@ -50,9 +51,6 @@
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
-  "workspaces": [
-    "test-app"
-  ],
   "publishConfig": {
     "access": "public",
     "provenance": true
