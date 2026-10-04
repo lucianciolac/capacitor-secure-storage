@@ -52,6 +52,12 @@ const assertPackedFiles = (packedFiles) => {
     assert.equal(packedFile.startsWith("node_modules/"), false, "Package must not include node_modules");
     assert.equal(packedFile.startsWith(".github/"), false, "Package must not include GitHub workflow files");
     assert.equal(packedFile.startsWith("tests/"), false, "Package must not include test files");
+    assert.equal(packedFile.startsWith("ios/Tests/"), false, "Package must not include iOS test files");
+    assert.equal(
+      packedFile.startsWith("android/src/androidTest/"),
+      false,
+      "Package must not include Android test files",
+    );
     assert.equal(packedFile.startsWith("src/"), false, "Package must not include TypeScript source files");
   }
 };

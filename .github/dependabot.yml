@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     commit-message:
       prefix: chore
       include: scope
@@ -14,7 +14,7 @@ updates:
   - package-ecosystem: gradle
     directory: /android
     schedule:
-      interval: monthly
+      interval: weekly
     commit-message:
       prefix: chore
       include: scope
@@ -25,7 +25,7 @@ updates:
   - package-ecosystem: swift
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     commit-message:
       prefix: chore
       include: scope
@@ -35,7 +35,7 @@ updates:
       - /
       - /.github/actions/*
     schedule:
-      interval: monthly
+      interval: weekly
     commit-message:
       prefix: ci
       include: scope
